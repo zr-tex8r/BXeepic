@@ -1,0 +1,34 @@
+%
+% bxdpxp2e.def
+%
+%% file declaration
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesFile{bxdpxp2e.def}[2010/08/08 v0.1]
+%% avoid multiple load
+\csname bxpz@bxdpxpIIe@loaded\endcsname
+\def\bxpz@bxdpxpIIe@loaded{\endinput}
+%% declare option 'dvipdfmx'
+\expandafter\ifx\csname ds@dvipdfmx\endcsname\relax
+  \DeclareOption{dvipdfmx}{\bxpz@pIIe@dvipdfmx}
+\fi
+%% \bxpz@pIIe@dvipdfmx
+\@onlypreamble\bxpz@pIIe@dvipdfmx
+\def\bxpz@pIIe@dvipdfmx{%
+  \expandafter\ifx\csname ver@dvipdfmx.def\endcsname\relax
+    \input{dvipdfmx.def}\fi
+  \begingroup % cancel \relax'ing of \[ver@dvipdfm.def]
+    \xdef\bxpz@nxt{\noexpand\bxpz@nxt@a\expandafter\noexpand
+     \csname ver@dvipdfm.def\endcsname\noexpand\bxpz@ver@dpm}%
+  \endgroup
+  \def\bxpz@nxt@a##1##2{\let##2##1\let##1\@empty
+    \AtEndOfPackage{\let##1##2\def\Gin@driver{dvipdfmx.def}}}%
+  \bxpz@nxt \def\Gin@driver{dvipdfm.def}%
+  %
+  \def\bxpz@begin@picture@hook{\let\pdfliteral\bxpz@pdfliteral}
+  \def\bxpz@pdfliteral##1{\special{pdf:literal ##1}}
+  \let\bxpz@org@@picture\@picture
+  \def\@picture{\bxpz@begin@picture@hook \bxpz@org@@picture}
+  %
+  \let\bxpz@pIIe@dvipdfmx\relax
+}
+%% EOF
