@@ -21,7 +21,7 @@ one can use eepic and pict2e in the same document.
 
 ### Installation
 
-  - `*.sty`, `*.def` → $TEXMF/tex/latex/BXeepic
+  - `*.sty`, `*.def` → $TEXMF/tex/latex/bxeepic
 
 ### Usage
 
