@@ -4,7 +4,7 @@
 
 %% package declarations
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{bxeepic}[2013/04/28 v0.2]
+\ProvidesPackage{bxeepic}[2020/06/28 v0.3]
 
 %% preparation
 \def\bxpz@ee@pkgname{bxeepic}
@@ -564,7 +564,7 @@
 \def\bxpz@putfile@c#1 {%
   \ifx @#1@\relax \else
     \ifx\bxpz@tmpa\relax \def\bxpz@tmpa{#1}%
-    \else \put(\bxpz@tmpa,#1){\bxpz@body}
+    \else \jput(\bxpz@tmpa,#1){\bxpz@body}
           \let\bxpz@tmpa\relax
     \fi \expandafter\bxpz@putfile@c
   \fi}

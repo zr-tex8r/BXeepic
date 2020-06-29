@@ -19,6 +19,13 @@ almost full features of epic + eepic implemented on pict2e engines.
 Thus one can make epic + eepic drawings work on pdfTeX; moreover,
 one can use eepic and pict2e in the same document.
 
+### System requirement
+
+  * TeX format: LaTeX.
+  * TeX engine: Anything.
+  * Dependent packages:
+      - pict2e
+
 ### Installation
 
   - `*.sty`, `*.def` → $TEXMF/tex/latex/bxeepic
@@ -61,6 +68,8 @@ the following:
 Revision History
 ----------------
 
+  * Version 0.3 <2020/06/28>
+      - Use `\jput` (instead of `\put`) to put objects in `\putfile`.
   * Version 0.2 <2013/04/28>
       - The bxdpxp2e module, which provides proper support for
         dvipdfmx, was abolished because the recent pic2e (>=v0.2y)
@@ -71,4 +80,4 @@ Revision History
 
 --------------------
 Takayuki YATO (aka. "ZR")  
-http://zrbabbler.sp.land.to/
+https://github.com/zr-tex8r
