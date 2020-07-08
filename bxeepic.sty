@@ -280,14 +280,14 @@
   \else
     \ifbxpz@eepic@dotl \roundcap \fi
     \bxpz@set@dp\bxpz@dp
-    \ifnum \bxpz@dpflag=\@ne \bxpz@adj@linewidth \fi
+    \ifbxpz@eepic@dotl\ifnum\bxpz@dpflag=\@ne \bxpz@adj@linewidth \fi\fi
     \xdef\bxpz@setdash{\bxpz@beginarray@op\space\bxpz@dpary
       \bxpz@endarray@op\space\bxpz@setdash@phase\space
       \bxpz@setdash@op\space}%
   \fi
   \edef\x{\pIIe@debug@comment\space\pIIe@scale@PTtoBP}%
   \edef\x{\x\space\bxpz@setdash\strip@pt\@wholewidth\space
-    \pIIe@setlinewidth@op}%
+    \pIIe@setlinewidth@op\bxpz@setlinecapandjoin}%
   \ifnum#1=\z@
     \expandafter\pIIe@code\expandafter{%
      \expandafter\x\the\pIIe@GRAPH\space\pIIe@stroke@op}%
@@ -305,6 +305,13 @@
   \global\pIIe@GRAPH{}\xdef\pIIe@CPx{}\xdef\pIIe@CPy{}%
   \endgroup
   \let\bxpz@dp\relax}
+
+%% \bxpz@setlinecapandjoin
+\ifx\pIIe@linecap\@undefined
+  \let\bxpz@setlinecapandjoin\@empty
+\else
+  \def\bxpz@setlinecapandjoin{\pIIe@linecap\pIIe@linejoin\space}
+\fi
 
 %% \bxpz@set@dp\DP
 \def\bxpz@set@dp#1{\expandafter\bxpz@set@dp@a#1}
@@ -664,12 +671,14 @@
   \let#1#5\let#3#5\def#5{\def#2{#7}#3\aftergroup#4}%
   \def#4{\csname bxpz@LS/#6/#2\endcsname}}
 % redefine linestyle commands
+\ifx\pIIe@linecap\@undefined
 \bxpz@redefine@linestyle\buttcap{lcap}{0}
 \bxpz@redefine@linestyle\roundcap{lcap}{1}
 \bxpz@redefine@linestyle\squarecap{lcap}{2}
 \bxpz@redefine@linestyle\miterjoin{ljoin}{0}
 \bxpz@redefine@linestyle\roundjoin{ljoin}{1}
 \bxpz@redefine@linestyle\beveljoin{ljoin}{2}
+\fi
 
 % default values of states
 \let\bxpz@lcap\bxpz@dflt@linecap
