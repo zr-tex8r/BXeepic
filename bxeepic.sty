@@ -55,8 +55,6 @@
 \AtEndOfPackage{%
   \drawlines
   \eepicdottedlines
-  \def\bxpz@tmpa{20pt}%
-  %\ifx\maxovalrad\bxpz@tmpa \def\maxovalrad{.5\maxovaldiam}\fi
 }
 
 %% internal parameters
@@ -768,6 +766,25 @@
 \ifx\bxpz@begin@picture@hook\@empty\else
   \let\bxpz@org@@picture\@picture
   \def\@picture{\bxpz@begin@picture@hook \bxpz@org@@picture}%
+\fi
+
+% As long as \maxovalrad remains unchanged, the effective
+% value of \maxovalrad will be regarded as .5\maxovaldiam.
+\def\bxpz@tmpa{20pt}\ifx\bxpz@tmpa\maxovalrad
+%% \bxpz@d@xxpt : catcode-12 string '20pt', used as flag
+\def\bxpz@nxt#1>#2.{\def\bxpz@d@xxpt{#2}}
+\expandafter\bxpz@nxt\meaning\bxpz@tmpa.
+%% patch to \maxovalrad
+\let\maxovalrad\bxpz@d@xxpt
+%% patch to \pIIe@defaultUL
+\let\bxpz@pIIe@defaultUL\pIIe@defaultUL
+\def\bxpz@cs@maxovalrad{\maxovalrad}
+\def\pIIe@defaultUL#1#2{%
+  \def\bxpz@tmpa{#2}\ifx\bxpz@tmpa\bxpz@cs@maxovalrad
+    \ifx\maxovalrad\bxpz@d@xxpt % unchanged
+      \bxpz@pIIe@defaultUL{#1}{.5\maxovaldiam}%
+    \else \bxpz@pIIe@defaultUL{#1}{#2}\fi
+  \else \bxpz@pIIe@defaultUL{#1}{#2}\fi}
 \fi
 
 \fi                 %----</safe>
