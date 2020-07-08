@@ -46,17 +46,14 @@ be passed to pict2e.
 This package provides all commands of epic and eepic packages, except
 the following:
 
-  - Shading: `\blacken`, `\whiten`, `\shade`, `\texture`, `\filltype`
-  - Dashed line with dotted dashes: the second optional argument of
-    `\dashline` is ignored.
   - Dotted line with user-defined dots: the optional argument of
     `\dottedline` is ignored.
 
 ### Notice
 
-  - When behavior of a command differs btween eepic and epic, then
+  - When behavior of a command differs between eepic and epic, then
     that of eepic is adopted.
-  - When behavior of a command differs btween pict2e and eepic, then
+  - When behavior of a command differs between pict2e and eepic, then
     that of pict2e is adopted.
   - However, `\arc` command can be used either in pict2e or eepic
     syntax; when it looks like `\arc{...}{...}{...}` then eepic syntax
@@ -68,14 +65,20 @@ the following:
 Revision History
 ----------------
 
-  * Version 0.3 <2020/06/28>
+  * Version 0.4 〈2020/07/07〉
+      - Now shading (`\blacken`, `\whiten`, `\shade`, `\filltype`)
+        is supported. `\texture` fallbacks to `\shade`, as in dvips.
+      - Now dashed lines with dotted dashes are supported: the second
+        optional argument of `\dashline` is employed.
+      - Fix for supporting pict2e of version 2016/01/09 or later.
+  * Version 0.3 〈2020/06/28〉
       - Use `\jput` (instead of `\put`) to put objects in `\putfile`.
-  * Version 0.2 <2013/04/28>
+  * Version 0.2 〈2013/04/28〉
       - The bxdpxp2e module, which provides proper support for
         dvipdfmx, was abolished because the recent pic2e (>=v0.2y)
         has the support.
       - Documentation.
-  * Version 0.1 <2010/08/08>
+  * Version 0.1 〈2010/08/08〉
       - The first public version.
 
 --------------------
