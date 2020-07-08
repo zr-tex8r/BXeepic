@@ -23,6 +23,7 @@
 \newif\ifbxpz@eepic@dotl
 \newif\ifbxpz@uselbl
 \newif\ifbxpz@first
+\newif\ifbxpz@use@ftfill
 \chardef\bxpz@boxa=8
 
 %% public parameters
@@ -78,12 +79,20 @@
 \ifnum\pIIe@mode<\@ne
   \endinput\expandafter\fi
 
+%% begin-picture hook
+\let\bxpz@begin@picture@hook\@empty
+
 %% 
 \ifcase\pIIe@mode\relax
   \or
   \def\bxpz@setdash@op{setdash}
+  \def\bxpz@setgray@op{setgray@}
+  \g@addto@macro\bxpz@begin@picture@hook{%
+    \Gin@PS@raw{/setgray@ { setgray } bind def}}
   \or
   \def\bxpz@setdash@op{d}
+  \def\bxpz@setgray@op{g}% for fill
+  \def\bxpz@fillstroke@op{B}
 \fi
 \def\bxpz@beginarray@op{[}
 \def\bxpz@endarray@op{]}
@@ -199,7 +208,7 @@
   \let\bxpz@dp@mode\bxpz@dp \bxpz@dp@clear \ignorespaces}
 
 %%<*>\path(X1,Y1)..(Xn,Yn)
-\def\path{\bxpz@asdraw \bxpz@polyline}
+\def\path{\bxpz@use@ftfill \bxpz@asdraw \bxpz@polyline}
 
 %%------ Dash-pattern generator
 
@@ -260,8 +269,12 @@
 \def\bxpz@pIIe@strokeGraph{\begingroup \@tempswafalse\pIIe@drawGraph}
 
 % \bxpz@stroke@graph
-\def\bxpz@stroke@graph{\begingroup \bxpz@draw@graph}
-\def\bxpz@draw@graph{%
+\def\bxpz@stroke@graph{%
+  \begingroup
+  \ifbxpz@use@ftfill \bxpz@draw@graph\bxpz@g@fillnext
+  \else \bxpz@draw@graph\z@ \fi
+  \bxpz@reset@ftfill}
+\def\bxpz@draw@graph#1{%
   \ifx\bxpz@dp\relax \let\bxpz@dp\bxpz@dp@mode \fi
   \ifx\bxpz@dp\bxpz@dp@drawl@val \let\bxpz@setdash\@empty
   \else
@@ -275,9 +288,20 @@
   \edef\x{\pIIe@debug@comment\space\pIIe@scale@PTtoBP}%
   \edef\x{\x\space\bxpz@setdash\strip@pt\@wholewidth\space
     \pIIe@setlinewidth@op}%
-  \edef\y{\pIIe@stroke@op}%
-  \expandafter\pIIe@code\expandafter{%
-   \expandafter\x\the\pIIe@GRAPH\space\y}%
+  \ifnum#1=\z@
+    \expandafter\pIIe@code\expandafter{%
+     \expandafter\x\the\pIIe@GRAPH\space\pIIe@stroke@op}%
+  \else\ifx\bxpz@fillstroke@op\@undefined
+    \expandafter\pIIe@code\expandafter{%
+     \expandafter\x\the\pIIe@GRAPH\space
+     \bxpz@graylevel#1\space\bxpz@setgray@op\space\pIIe@fill@op}%
+    \expandafter\pIIe@code\expandafter{%
+     \expandafter\x\the\pIIe@GRAPH\space\pIIe@stroke@op}%
+  \else
+    \expandafter\pIIe@code\expandafter{%
+     \expandafter\x\the\pIIe@GRAPH\space
+     \bxpz@graylevel#1\space\bxpz@setgray@op\space\bxpz@fillstroke@op}%
+  \fi\fi
   \global\pIIe@GRAPH{}\xdef\pIIe@CPx{}\xdef\pIIe@CPy{}%
   \endgroup
   \let\bxpz@dp\relax}
@@ -297,11 +321,14 @@
 
 % pict2e's original \@arc command
 \let\bxpz@pIIe@arc\@arc
+\ifx\pIIe@arc@\@undefined\else
+  \let\bxpz@pIIe@arc\pIIe@arc@ \fi
 
 %% \@arc{<diam>}{<s_angle>}{<e_angle>}
 % If the arguments obey the format shown above then passes them
 % to \bxpz@eepic@arc; otherwise passes them to \bxpz@pIIe@arc.
-\def\@arc{\@ifnextchar[{\@arc}{\bxpz@arc@a}}
+\def\@arc{\@ifnextchar[{\bxpz@pIIe@arc}{\bxpz@arc@a}}
+\ifx\pIIe@arc@\@undefined\else \let\pIIe@arc@\@arc \fi
 \def\bxpz@arc@a#1{%
   \def\bxpz@argi{#1}\futurelet\bxpz@tok\bxpz@arc@b}
 \def\bxpz@arc@b{%
@@ -319,6 +346,7 @@
 
 %% \bxpz@eepic@arc{<diam>}{<s_angle>}{<e_angle>}
 \def\bxpz@eepic@arc#1#2#3{%
+  \bxpz@use@ftfill
   \bgroup
     \@tempdima=#2\p@ \@tempdimb=#3\p@ \bxpz@conv@arc@param
     \@tempdimc=#1\unitlength \divide\@tempdimc\tw@
@@ -365,8 +393,9 @@
 
 %%<*> \ellipse[*]{<x_diam>}{<y_diam>}
 \def\ellipse{%
-  \@ifstar{\begingroup\@tempswatrue\bxpz@ellipse}%
-   {\begingroup\@tempswafalse\bxpz@ellipse}}
+  \begingroup
+  \@ifstar{\bxpz@use@ftfill\@tempswatrue\bxpz@ellipse}%
+   {\bxpz@use@ftfill\@tempswafalse\bxpz@ellipse}}
 \def\bxpz@ellipse#1#2{%
     \@tempdima=#1\unitlength\@tempdimb=#2\unitlength
     \ifdim\@tempdima<\z@ \@tempdima\z@ \fi
@@ -570,6 +599,40 @@
 \def\bxpz@dofile@ifex@a{\bxpz@dofile@oktrue
   \let\InputIfFileExists\bxpz@ltx@InputIfFileExists}
 
+%% fill states
+\chardef\bxpz@g@fillnext=\z@
+\chardef\bxpz@filltype=\z@
+
+%% \bxpz@ftfill@graph{<ft>}
+\def\bxpz@ftfill@graph#1{%
+  \begingroup
+  \let\bxpz@dp\bxpz@dp@drawl@val
+  \bxpz@draw@graph{#1}\bxpz@reset@ftfill}
+
+%% \bxpz@reset@ftfill
+\def\bxpz@reset@ftfill{%
+  \bxpz@use@ftfillfalse \global\chardef\bxpz@g@fillnext=\z@}
+
+%% \bxpz@graylevel{<ft>}
+\def\bxpz@graylevel#1{%
+  \ifcase#1\relax\or 0\or 1\or 0.5\fi}
+
+%%<*> \blacken
+\def\blacken{\global\chardef\bxpz@g@fillnext=\@ne}
+%%<*> \whiten
+\def\whiten{\global\chardef\bxpz@g@fillnext=\tw@}
+%%<*> \shade
+\def\shade{\global\chardef\bxpz@g@fillnext=\thr@@}
+%%<*> \texture{<str>}
+% Fallback to \blacken, as done in dvips.
+\def\texture#1{\blacken \ignorespaces}
+%%<*> \filltype{<name>}
+\def\filltype#1{%
+  \chardef\bxpz@filltype=\z@ \@nameuse{bxpz@ft@#1}}
+\def\bxpz@ft@black{\chardef\bxpz@filltype=\@ne}
+\def\bxpz@ft@white{\chardef\bxpz@filltype=\tw@}
+\def\bxpz@ft@shade{\chardef\bxpz@filltype=\thr@@}
+
 %%------
 \ifbxpz@safe        %----<*safe>
 
@@ -577,6 +640,10 @@
 % No-op in safe mode.
 \let\eepicdottedlines\relax
 \let\noeepicdottedlines\relax
+
+%% \bxpz@use@ftfill
+% No-op in safe mode.
+\let\bxpz@use@ftfill\relax
 
 \else               %----<*!safe>
 
@@ -617,6 +684,38 @@
   \pIIe@qcircle  \tw@{#1}\pIIe@qcircle\thr@@{#1}%
   \endgroup}
 
+%% \bxpz@use@ftfill
+\let\bxpz@use@ftfill\bxpz@use@ftfilltrue
+
+%% patch to \pIIe@fillGraph
+\let\bxpz@pIIe@fillGraph\pIIe@fillGraph
+\def\pIIe@fillGraph{%
+  \ifnum\bxpz@filltype=\z@ \bxpz@pIIe@fillGraph
+  \else\ifbxpz@use@ftfill \bxpz@ftfill@graph\bxpz@filltype
+  \else \bxpz@pIIe@fillGraph \fi\fi
+  \bxpz@reset@ftfill}
+%% patch to \pIIe@strokeGraph
+\let\bxpz@pIIe@strokeGraph\pIIe@strokeGraph
+\def\pIIe@strokeGraph{%
+  \ifnum\bxpz@g@fillnext=\z@ \bxpz@pIIe@strokeGraph
+  \else\ifbxpz@use@ftfill \bxpz@ftfill@graph\bxpz@g@fillnext
+  \else \bxpz@pIIe@strokeGraph \fi\fi
+  \bxpz@reset@ftfill}
+
+%% patch to \@circle
+\def\@circle#1{%
+  \begingroup
+  \bxpz@use@ftfill\@tempswafalse\pIIe@circ{#1}}
+%% patch to \@dot
+\def\@dot#1{%
+  \begingroup
+  \bxpz@use@ftfill\@tempswatrue\pIIe@circ{#1}}
+
+%% apply \bxpz@begin@picture@hook
+\ifx\bxpz@begin@picture@hook\@empty\else
+  \let\bxpz@org@@picture\@picture
+  \def\@picture{\bxpz@begin@picture@hook \bxpz@org@@picture}%
+\fi
 
 \fi                 %----</safe>
 \endinput
