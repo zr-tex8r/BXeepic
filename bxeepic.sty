@@ -52,19 +52,6 @@
 \def\bxpz@dflt@linecap{0}
 \def\bxpz@dflt@linejoin{0}
 
-%% dvipdfmx option
-\IfFileExists{p2e-dvipdfmx.def}{}{%else
-  % if pict2e lacks of proper support of dvipdfmx
-  \@ifpackageloaded{pict2e}{}{%else
-    \DeclareOption{dvipdfmx}{%
-      \PassOptionsToPackage{dvipdfm}{pict2e}%
-      \def\bxpz@begin@picture@hook{\let\pdfliteral\bxpz@pdfliteral}%
-      \def\bxpz@pdfliteral##1{\special{pdf:literal ##1}}%
-      \let\bxpz@org@@picture\@picture
-      \def\@picture{\bxpz@begin@picture@hook \bxpz@org@@picture}%
-    }%
-  }%
-}
 %% option handling
 \newif\ifbxpz@safe
 \DeclareOption{safe}{\bxpz@safetrue}
