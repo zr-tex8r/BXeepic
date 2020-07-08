@@ -17,6 +17,8 @@
   {Poly-line commands need at least two vertices.}}
 \def\bxpz@warn@wnstr{\bxpz@ee@warn
   {Blank lines due to too low stretch value.}}
+\def\bxpz@warn@igdch{\bxpz@ee@warn
+  {User-defined dot chars are not supported,\MessageBreak}}
 % (globals)
 \newif\ifbxpz@injoin
 \newif\ifbxpz@dashset
@@ -120,9 +122,9 @@
   \fi \bxpz@nxt}
 \def\bxpz@drawl@c{\bxpz@path{\bxpz@dp@drawl}}
 \def\bxpz@dashl@a{\@testopt\bxpz@dashl@b\dashlinestretch}
-\def\bxpz@dashl@b[#1]#2{\@testopt{\bxpz@dashl@c{#1}{#2}}{}}
-\def\bxpz@dashl@c#1#2[#3]{\bxpz@path{\bxpz@dp@dashl{#1}{#2}}}
-\def\bxpz@dotl@a{\@testopt\bxpz@dotl@b{}}
+\def\bxpz@dashl@b[#1]#2{\@testopt{\bxpz@dashl@c{#1}{#2}}{0}}
+\def\bxpz@dashl@c#1#2[#3]{\bxpz@path{\bxpz@dp@dashl{#1}{#2}{#3}}}
+\def\bxpz@dotl@a{\@testopt\bxpz@dotl@b{\bxpz@nml@dot@}}
 \def\bxpz@dotl@b[#1]#2{\bxpz@path{\bxpz@dp@dotl{#1}{#2}}}
 %\def\path{\bxpz@asdraw\bxpz@path{}}
 %% \bxpz@path{<dash-pattern>}
@@ -221,17 +223,21 @@
 \def\bxpz@dp@drawl{\let\bxpz@dp\bxpz@dp@drawl@val}
 %% \bxpz@dp@dotl{<IGNORED>}{<dot-gap>}
 \def\bxpz@dp@dotl#1#2{\bxpz@dp@start
-  \bxpz@addto@dp@nums{\@wholewidth}{#2\unitlength}%
+  \def\bxpz@dot{#1}\ifx\bxpz@dot\bxpz@nml@dot\else\bxpz@warn@igdch\fi
+  \@tempdima\ifbxpz@eepic@dotl\z@\else\@wholewidth\fi
+  \@tempdimb#2\unitlength \advance\@tempdimb-\@tempdima
+  \ifdim\@tempdimb>\z@ \bxpz@addto@dp@nums{\@tempdima}{\@tempdimb}\fi
   \gdef\bxpz@g@dpflag{1}\bxpz@dp@end}
+\def\bxpz@nml@dot{\bxpz@nml@dot@}
 %% \bxpz@dp@drawl@x{<stretch>}
 % For \drawline with negative stretch.
 \def\bxpz@dp@drawl@x#1{\bxpz@dp@dashl@sub{%
   \@tempcnta=#1\relax\multiply\@tempcnta\tw@
-  \@tempdima=\bxpz@dashlen@drawline}}
+  \@tempdima=\bxpz@dashlen@drawline \@tempdimc\z@}}
 %% \bxpz@dp@dashl{<stretch>}{<dash-length>}
-\def\bxpz@dp@dashl#1#2{\bxpz@dp@dashl@sub{%
+\def\bxpz@dp@dashl#1#2#3{\bxpz@dp@dashl@sub{%
   \@tempcnta=#1\relax\advance\@tempcnta-100 
-  \@tempdima=#2\unitlength}}
+  \@tempdima=#2\unitlength \@tempdimc#3\unitlength}}
 % \bxpz@dp@dashl@sub
 % Here dash gap length is calculated so that 'ink ratio' in resulted
 % lines equals the value derived from the given stretch value.
@@ -244,12 +250,25 @@
     \ifnum\@tempcnta>-200 %
       \@tempdimb=-\@tempcnta\@tempdima
       \advance\@tempcnta200 \divide\@tempdimb\@tempcnta
-      \bxpz@addto@dp@nums{\@tempdima}{\@tempdimb}%
+      \ifdim\@tempdimc>\z@ \bxpz@dp@dashl@suba % dotted-dash
+      \else \bxpz@addto@dp@nums{\@tempdima}{\@tempdimb}%
+      \fi
     \else % 'blank' lines
       \bxpz@warn@wnstr \bxpz@addto@dp@nums{\z@}{1000pt}%
     \fi
   \fi % if \@tempcnta >=0 then do nothing (solid lines)
   \bxpz@dp@end}
+\def\bxpz@dp@dashl@suba{%
+  \@ovri\ifbxpz@eepic@dotl\z@\else\@wholewidth\fi
+  \ifdim\@tempdima>\@ovri \advance\@tempdima-\@ovri
+    \@ovro\@tempdima \advance\@ovro.5\@tempdimc \divide\@ovro\@tempdimc
+    \@tempcnta\@ovro \@ovro\@tempdima \divide\@ovro\@tempcnta
+    \advance\@ovro-\@ovri \@tempdima\@ovri
+    \@whilenum{\@tempcnta>\z@}\do{\advance\@tempcnta\m@ne
+      \bxpz@addto@dp@nums{\@ovri}{\@ovro}}%
+  \fi
+  \bxpz@addto@dp@nums{\@tempdima}{\@tempdimb}%
+  \gdef\bxpz@g@dpflag{1}}
 % some internal stuffs
 \def\bxpz@dp@start{%
   \bgroup \global\let\bxpz@g@dp\@empty \gdef\bxpz@g@dpflag{0}}
