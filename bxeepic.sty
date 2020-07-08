@@ -1,25 +1,34 @@
-%
-% bxeepic.sty
-%
+%%
+%% This is file 'bxeepic.sty'.
+%%
+%% Copyright (c) 2010-2020 Takayuki YATO (aka. "ZR")
+%%   GitHub:   https://github.com/zr-tex8r
+%%   Twitter:  @zr_tex8r
+%%
+%% This package is distributed under the MIT License.
+%%
 
 %% package declarations
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{bxeepic}[2020/06/28 v0.3]
+\ProvidesPackage{bxeepic}[2020/06/28 v0.4-pre]
 
 %% preparation
-\def\bxpz@ee@pkgname{bxeepic}
-\def\bxpz@ee@error{\PackageError\bxpz@ee@pkgname}
-\def\bxpz@ee@warn{\PackageWarning\bxpz@ee@pkgname}
-% (errors)
-\def\bxpz@warn@peald#1{\bxpz@ee@warn
-  {Option '#1' ignored (pict2e already loaded)}}
-\def\bxpz@warn@wnpnt{\bxpz@ee@warn
-  {Poly-line commands need at least two vertices.}}
-\def\bxpz@warn@wnstr{\bxpz@ee@warn
-  {Blank lines due to too low stretch value.}}
-\def\bxpz@warn@igdch{\bxpz@ee@warn
+\def\bxpz@pkgname{bxeepic}
+\let\bxpz@ee@pkgname\bxpz@pkgname % old name
+
+%--------------------------------------- general
+
+%% errors
+\def\bxpz@warn@peald#1{\PackageWarning\bxpz@ee@pkgname
+  {Option '#1' ignored (pict2e already loaded),\MessageBreak}}
+\def\bxpz@warn@wnpnt{\PackageWarning\bxpz@ee@pkgname
+  {Poly-line commands need at least two vertices,\MessageBreak}}
+\def\bxpz@warn@wnstr{\PackageWarning\bxpz@ee@pkgname
+  {Blank lines due to too low stretch value,\MessageBreak}}
+\def\bxpz@warn@igdch{\PackageWarning\bxpz@ee@pkgname
   {User-defined dot chars are not supported,\MessageBreak}}
-% (globals)
+
+%% variables
 \newif\ifbxpz@injoin
 \newif\ifbxpz@dashset
 \newif\ifbxpz@eepic@dotl
@@ -41,6 +50,7 @@
 \def\epicbottomgridlabelsep{2\unitlength}
 %%<*> \epicsidegridlabelsep
 \def\epicsidegridlabelsep{\spacewidth}
+
 %% other initial settings
 \AtEndOfPackage{%
   \drawlines
@@ -55,7 +65,9 @@
 \def\bxpz@dflt@linecap{0}
 \def\bxpz@dflt@linejoin{0}
 
-%% option handling
+%--------------------------------------- options
+
+%% '(no)safe'
 \newif\ifbxpz@safe
 \DeclareOption{safe}{\bxpz@safetrue}
 \DeclareOption{nosafe}{\bxpz@safefalse}
@@ -65,6 +77,7 @@
 }{%else
   \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{pict2e}}%
 }%
+% dispatch
 \ExecuteOptions{nosafe}
 \ProcessOptions*
 
@@ -75,23 +88,25 @@
 \@namedef{ver@epic.sty}{2100/01/01}
 \@namedef{ver@eepic.sty}{2100/01/01}
 
-%%------ mode-dependent stuffs
+%--------------------------------------- mode-dependent stuffs
 
 %% exits unless in right mode
-\ifnum\pIIe@mode<\@ne
-  \endinput\expandafter\fi
+\ifnum\pIIe@mode<\@ne % 'original' or unsupported drivers
+  \PackageInfo\bxpz@pkgname
+   {Unsupported mode, aborted\@gobble}
+\expandafter\endinput\fi\relax
 
 %% begin-picture hook
 \let\bxpz@begin@picture@hook\@empty
 
-%% 
+%% stuffs
 \ifcase\pIIe@mode\relax
-  \or
+  \or % PostScript
   \def\bxpz@setdash@op{setdash}
   \def\bxpz@setgray@op{setgray@}
   \g@addto@macro\bxpz@begin@picture@hook{%
     \Gin@PS@raw{/setgray@ { setgray } bind def}}
-  \or
+  \or % PDF
   \def\bxpz@setdash@op{d}
   \def\bxpz@setgray@op{g}% for fill
   \def\bxpz@fillstroke@op{B}
@@ -99,7 +114,7 @@
 \def\bxpz@beginarray@op{[}
 \def\bxpz@endarray@op{]}
 
-%%------ Poly-line commands
+%--------------------------------------- poly-line commands
 
 %% \bxpz@asdraw / \bxpz@asjoin / \bxpz@asmode
 \def\bxpz@asdraw{\chardef\bxpz@lm@invoke\z@}
@@ -109,7 +124,6 @@
 %%<*> \drawline/\dottedline/\dashline
 % \dottedline[CHAR]{DOTGAP}(X1,Y1)...(XN,YN)
 % \dashline[STRETCH]{DASHLEN}[DOTGAP](X1,Y1)...(XN,YN)
-%   * DOTGAP is ignored
 % \drawline[STRETCH](X1,Y1)...(XN,YN)
 %   * switches to \dashline in case of negative STRETCH
 \def\drawline{\bxpz@asdraw\bxpz@drawl@a}
@@ -126,16 +140,15 @@
 \def\bxpz@dashl@c#1#2[#3]{\bxpz@path{\bxpz@dp@dashl{#1}{#2}{#3}}}
 \def\bxpz@dotl@a{\@testopt\bxpz@dotl@b{\bxpz@nml@dot@}}
 \def\bxpz@dotl@b[#1]#2{\bxpz@path{\bxpz@dp@dotl{#1}{#2}}}
-%\def\path{\bxpz@asdraw\bxpz@path{}}
-%% \bxpz@path{<dash-pattern>}
+%% \bxpz@path{<dash-pattern-cmd>}
 \def\bxpz@path#1{%
   #1\ifcase\bxpz@lm@invoke
-    \expandafter\bxpz@polyline
-    \or \expandafter\bxpz@join@start
-    \or \expandafter\bxpz@dash@mode
+    \expandafter\bxpz@polyline % draw
+    \or \expandafter\bxpz@join@start % join
+    \or \expandafter\bxpz@dash@mode % mode
   \fi}
 
-%% \bxpz@polyline
+%% \bxpz@polyline(X1,Y1)...
 % Same as \polyline in pict2e, except that \bxpz@stroke@graph is
 % used instead of \pIIe@strokeGraph.
 \def\bxpz@polyline(#1,#2){%
@@ -212,7 +225,7 @@
 %%<*>\path(X1,Y1)..(Xn,Yn)
 \def\path{\bxpz@use@ftfill \bxpz@asdraw \bxpz@polyline}
 
-%%------ Dash-pattern generator
+%--------------------------------------- dash-pattern generator
 
 % A dash-pattern generator defines \bxpz@dp to be
 % {<PS dash array>}{<dash flag>}
@@ -234,7 +247,7 @@
 \def\bxpz@dp@drawl@x#1{\bxpz@dp@dashl@sub{%
   \@tempcnta=#1\relax\multiply\@tempcnta\tw@
   \@tempdima=\bxpz@dashlen@drawline \@tempdimc\z@}}
-%% \bxpz@dp@dashl{<stretch>}{<dash-length>}
+%% \bxpz@dp@dashl{<stretch>}{<dash-length>}{<dot-gap>}
 \def\bxpz@dp@dashl#1#2#3{\bxpz@dp@dashl@sub{%
   \@tempcnta=#1\relax\advance\@tempcnta-100 
   \@tempdima=#2\unitlength \@tempdimc#3\unitlength}}
@@ -282,17 +295,15 @@
   \egroup}
 \def\bxpz@dp@clear{\let\bxpz@dp\relax}
 
-%%------ Strokes with dash-pattern in effect
+%--------------------------------------- strokes with dash-pattern
 
-%% pict2e original \pIIe@strokeGraph
-\def\bxpz@pIIe@strokeGraph{\begingroup \@tempswafalse\pIIe@drawGraph}
-
-% \bxpz@stroke@graph
+%% \bxpz@stroke@graph
 \def\bxpz@stroke@graph{%
   \begingroup
   \ifbxpz@use@ftfill \bxpz@draw@graph\bxpz@g@fillnext
   \else \bxpz@draw@graph\z@ \fi
   \bxpz@reset@ftfill}
+%% \bxpz@draw@graph{<fill-spec>}
 \def\bxpz@draw@graph#1{%
   \ifx\bxpz@dp\relax \let\bxpz@dp\bxpz@dp@mode \fi
   \ifx\bxpz@dp\bxpz@dp@drawl@val \let\bxpz@setdash\@empty
@@ -307,16 +318,16 @@
   \edef\x{\pIIe@debug@comment\space\pIIe@scale@PTtoBP}%
   \edef\x{\x\space\bxpz@setdash\strip@pt\@wholewidth\space
     \pIIe@setlinewidth@op\bxpz@setlinecapandjoin}%
-  \ifnum#1=\z@
+  \ifnum#1=\z@ % stroke
     \expandafter\pIIe@code\expandafter{%
      \expandafter\x\the\pIIe@GRAPH\space\pIIe@stroke@op}%
-  \else\ifx\bxpz@fillstroke@op\@undefined
+  \else\ifx\bxpz@fillstroke@op\@undefined % fill & stroke
     \expandafter\pIIe@code\expandafter{%
      \expandafter\x\the\pIIe@GRAPH\space
      \bxpz@graylevel#1\space\bxpz@setgray@op\space\pIIe@fill@op}%
     \expandafter\pIIe@code\expandafter{%
      \expandafter\x\the\pIIe@GRAPH\space\pIIe@stroke@op}%
-  \else
+  \else % fillstroke
     \expandafter\pIIe@code\expandafter{%
      \expandafter\x\the\pIIe@GRAPH\space
      \bxpz@graylevel#1\space\bxpz@setgray@op\space\bxpz@fillstroke@op}%
@@ -326,9 +337,9 @@
   \let\bxpz@dp\relax}
 
 %% \bxpz@setlinecapandjoin
-\ifx\pIIe@linecap\@undefined
+\ifx\pIIe@linecap\@undefined % old-age
   \let\bxpz@setlinecapandjoin\@empty
-\else
+\else % new-age
   \def\bxpz@setlinecapandjoin{\pIIe@linecap\pIIe@linejoin\space}
 \fi
 
@@ -337,20 +348,23 @@
 \def\bxpz@set@dp@a#1#2{%
   \def\bxpz@dpary{#2}\def\bxpz@dpflag{#1}}
 
+%% \bxpz@adj@linewidth
+% When using dotted lines, the line width is enlarged a bit.
+% (eepic does similar adjustment.)
 \def\bxpz@adj@linewidth{%
   \ifdim\@wholewidth<0.2pt \@wholewidth=2\@wholewidth
   \else\ifdim\@wholewidth<1pt
     \@wholewidth=0.75\@wholewidth \advance\@wholewidth0.25pt
   \fi\fi}
 
-%%------ Circles & ovals
+%--------------------------------------- circles & ovals
 
-% pict2e's original \@arc command
+% pict2e's original \pIIe@arc@ [or \@arc] macro
 \let\bxpz@pIIe@arc\@arc
 \ifx\pIIe@arc@\@undefined\else
   \let\bxpz@pIIe@arc\pIIe@arc@ \fi
 
-%% \@arc{<diam>}{<s_angle>}{<e_angle>}
+%% \pIIe@arc@{<diam>}{<s_angle>}{<e_angle>}
 % If the arguments obey the format shown above then passes them
 % to \bxpz@eepic@arc; otherwise passes them to \bxpz@pIIe@arc.
 \def\@arc{\@ifnextchar[{\bxpz@pIIe@arc}{\bxpz@arc@a}}
@@ -440,8 +454,7 @@
   \pIIe@curveto\@ovdx{-\@ovyy}\@ovxx{-\@ovdy}\@ovxx\z@
   \pIIe@closepath}
 
-
-%%------ Chaikin spline curves
+%--------------------------------------- Chaikin spline curves
 
 %%<*> \spline
 % Same as \polyline in pict2e, except that \bxpz@stroke@graph is
@@ -477,8 +490,7 @@
   \pIIe@lineto\@xdim\@ydim
   \bxpz@stroke@graph\ignorespaces}
 
-
-%%------ Functions not dependent on special features
+%----------------------------- functions not dependent on special features
 
 %%<*> \allinesthickness
 % In pict2e \linethickness setting applies to all kinds of lines.
@@ -625,8 +637,12 @@
 \def\bxpz@dofile@ifex@a{\bxpz@dofile@oktrue
   \let\InputIfFileExists\bxpz@ltx@InputIfFileExists}
 
+%--------------------------------------- shading
+
 %% fill states
+% for the next (unfilled) shape (\blacken etc)
 \chardef\bxpz@g@fillnext=\z@
+% for filled shapes (\filltype)
 \chardef\bxpz@filltype=\z@
 
 %% \bxpz@ftfill@graph{<ft>}
@@ -659,7 +675,7 @@
 \def\bxpz@ft@white{\chardef\bxpz@filltype=\tw@}
 \def\bxpz@ft@shade{\chardef\bxpz@filltype=\thr@@}
 
-%%------
+%--------------------------------------- patches to pict2e internal
 \ifbxpz@safe        %----<*safe>
 
 %%<*> \[no]eepicdottedlines
@@ -673,11 +689,20 @@
 
 \else               %----<*!safe>
 
-%%<*> \[no]eepicdottedlines
+%%<*> \eepicdottedlines
+% Makes appearance of dotted/dash lines more like eepic.
+% A dot is a dash of zero length with \roundcap setting.
+% Line width is enlarged when the width is fairly small.
 \let\eepicdottedlines\bxpz@eepic@dotltrue
+%%<*> \noeepicdottedlines
+% Negation of \eepicdottedlines.
+% A dot is a dash of \@wholewidth obeying the line-cap setting.
 \let\noeepicdottedlines\bxpz@eepic@dotlfalse
 
 %% \bxpz@redefine@linestyle\LSCMD{<attr>}{<val>}
+% Makes line-cap/join commands (\roundcap etc) obey localization.
+% Since 2016, pict2e's commands are aware of localization; and thus
+% this patch is no longer needed.
 \def\bxpz@redefine@linestyle#1#2#3{%
   \expandafter\bxpz@redefine@linestyle@a
    \csname bxpz@raw@\expandafter\@gobble\string#1\expandafter\endcsname
@@ -690,7 +715,7 @@
   \let#1#5\let#3#5\def#5{\def#2{#7}#3\aftergroup#4}%
   \def#4{\csname bxpz@LS/#6/#2\endcsname}}
 % redefine linestyle commands
-\ifx\pIIe@linecap\@undefined
+\ifx\pIIe@linecap\@undefined % old-age (before 2016)
 \bxpz@redefine@linestyle\buttcap{lcap}{0}
 \bxpz@redefine@linestyle\roundcap{lcap}{1}
 \bxpz@redefine@linestyle\squarecap{lcap}{2}
@@ -746,8 +771,8 @@
 \fi
 
 \fi                 %----</safe>
+%--------------------------------------- all done
 \endinput
-%%------
 %
 % List of epic features not contained in pict2e
 %
